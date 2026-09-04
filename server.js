@@ -21,7 +21,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'online',
-    appName: 'L.e.a. Ecolene Group Management Portal',
+    appName: 'L.E.A Ecolene Group Management Portal',
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
   });
@@ -48,7 +48,7 @@ app.get('*', (req, res) => {
 if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
   app.listen(PORT, () => {
     console.log(`=======================================================`);
-    console.log(`  L.e.a. Ecolene Group Management Server Running`);
+    console.log(`  L.E.A Ecolene Group Management Server Running`);
     console.log(`  Port: http://localhost:${PORT}`);
     console.log(`  Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`=======================================================`);

@@ -1,7 +1,7 @@
 {
   "name": "admin-ecolean",
   "version": "1.0.0",
-  "description": "Full-Stack Admin Management Application for L.e.a. Ecolene Group Company Limited",
+  "description": "Full-Stack Admin Management Application for L.E.A Ecolene Group Company Limited",
   "main": "server.js",
   "type": "module",
   "scripts": {
@@ -17,7 +17,7 @@
     "invoices",
     "tenders"
   ],
-  "author": "L.e.a. Ecolene Group Company Limited",
+  "author": "L.E.A Ecolene Group Company Limited",
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",

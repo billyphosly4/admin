@@ -1,5 +1,5 @@
 // ==========================================================================
-// L.e.a. Ecolene Group Company Limited — Admin Management App Logic
+// L.E.A Ecolene Group Company Limited — Admin Management App Logic
 // Firebase Web v10 Modular SDK Client Implementation
 // ==========================================================================
 
@@ -28,6 +28,7 @@ let app, auth, db;
 let unsubscribeInvoices = null;
 let unsubscribeTenders = null;
 let currentInvoiceData = null;
+let currentTxFilter = 'all';
 
 // Initialize App Configuration
 async function initFirebase() {
@@ -114,6 +115,7 @@ function setupUIEvents() {
       await signInWithEmailAndPassword(auth, email, password);
       authForm.reset();
     } catch (error) {
+      console.error('Firebase Login Error:', error.code, error.message, error);
       authAlert.style.display = 'flex';
       authAlertMsg.textContent = formatAuthError(error.code);
     }
@@ -150,6 +152,40 @@ function setupUIEvents() {
   // Modal Controls
   document.getElementById('btnCloseModal').addEventListener('click', closeModal);
   document.getElementById('btnPrintInvoice').addEventListener('click', () => window.print());
+  
+  const btnPdf = document.getElementById('btnDownloadPdf');
+  if (btnPdf) {
+    btnPdf.addEventListener('click', downloadInvoicePDF);
+  }
+
+  // Transaction History Filter Buttons
+  const filterBtns = document.querySelectorAll('.transaction-filter-group .filter-btn[data-filter]');
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentTxFilter = btn.getAttribute('data-filter') || 'all';
+      if (window._allInvoicesCache) {
+        renderInvoicesTable(window._allInvoicesCache);
+      }
+    });
+  });
+
+  // Transaction Statement Modal Controls
+  const btnExportTx = document.getElementById('btnExportTxStatement');
+  if (btnExportTx) {
+    btnExportTx.addEventListener('click', openTxStatementModal);
+  }
+
+  const btnPrintTx = document.getElementById('btnPrintTxStatement');
+  if (btnPrintTx) {
+    btnPrintTx.addEventListener('click', () => window.print());
+  }
+
+  const btnCloseTx = document.getElementById('btnCloseTxModal');
+  if (btnCloseTx) {
+    btnCloseTx.addEventListener('click', closeTxModal);
+  }
 
   // Set copyright year
   document.getElementById('copyrightYear').textContent = new Date().getFullYear();
@@ -160,9 +196,11 @@ function formatAuthError(code) {
     case 'auth/invalid-email': return 'Invalid email address format.';
     case 'auth/user-not-found':
     case 'auth/wrong-password':
-    case 'auth/invalid-credential': return 'Incorrect admin email or password.';
+    case 'auth/invalid-credential': return 'Incorrect admin email or password, or user account not found in Firebase Auth.';
+    case 'auth/operation-not-allowed': return 'Email/Password sign-in is not enabled in Firebase Console.';
     case 'auth/too-many-requests': return 'Too many failed login attempts. Try again later.';
-    default: return 'Authentication failed. Check your connection.';
+    case 'auth/network-request-failed': return 'Network error. Please check your internet connection.';
+    default: return `Authentication failed (${code || 'unknown'}). Check console for details.`;
   }
 }
 
@@ -172,25 +210,51 @@ async function handleCreateInvoice(e) {
 
   const clientName = document.getElementById('clientName').value.trim();
   const clientEmail = document.getElementById('clientEmail').value.trim();
-  const service = document.getElementById('serviceSelect').value;
-  const baseAmount = parseFloat(document.getElementById('baseAmount').value);
 
-  if (!clientName || !clientEmail || !service || isNaN(baseAmount) || baseAmount <= 0) {
-    alert("Please fill in all invoice fields with valid values.");
+  if (!clientName || !clientEmail) {
+    alert("Please enter the client name and email address.");
     return;
   }
 
-  // Calculate 16% VAT and totals
-  const subtotal = baseAmount;
+  // Collect checked services & itemized amounts
+  const selectedServices = [];
+  const serviceItems = document.querySelectorAll('.service-checkbox-item');
+
+  serviceItems.forEach(item => {
+    const chk = item.querySelector('.service-chk');
+    const priceInput = item.querySelector('.service-price-input');
+    
+    if (chk && chk.checked) {
+      const name = chk.value.trim();
+      const amount = parseFloat(priceInput ? priceInput.value : 0) || 0;
+      if (amount > 0) {
+        selectedServices.push({ name, amount });
+      }
+    }
+  });
+
+  if (selectedServices.length === 0) {
+    alert("Please select at least 1 eco-cleaning service and enter a valid amount (greater than KES 0).");
+    return;
+  }
+
+  // Calculate cumulative subtotal, 16% VAT, and grand total
+  const subtotal = selectedServices.reduce((sum, s) => sum + s.amount, 0);
   const vat = subtotal * 0.16;
   const grandTotal = subtotal + vat;
   const invoiceNum = generateInvoiceNum();
+
+  // Primary service summary string for backwards compatibility
+  const serviceSummary = selectedServices.length === 1
+    ? selectedServices[0].name
+    : `${selectedServices.length} Eco-Services (${selectedServices.map(s => s.name).join(', ')})`;
 
   const invoiceData = {
     invoiceNum,
     clientName,
     clientEmail,
-    service,
+    service: serviceSummary,
+    services: selectedServices,
     subtotal,
     vat,
     grandTotal,
@@ -239,18 +303,29 @@ function subscribeInvoices() {
   });
 }
 
-function renderInvoicesTable(invoices) {
+function renderInvoicesTable(rawInvoices) {
+  window._allInvoicesCache = rawInvoices;
+
+  // Apply Transaction Filter (All, Paid Receipts, Unpaid Invoices)
+  let invoices = rawInvoices;
+  if (currentTxFilter === 'paid') {
+    invoices = rawInvoices.filter(inv => inv.status === 'Paid');
+  } else if (currentTxFilter === 'unpaid') {
+    invoices = rawInvoices.filter(inv => inv.status === 'Unpaid');
+  }
+
   const tbody = document.getElementById('invoicesTbody');
   const countBadge = document.getElementById('invoiceCountBadge');
 
-  countBadge.textContent = `${invoices.length} Saved`;
+  const filterLabel = currentTxFilter === 'paid' ? 'Paid Receipts' : (currentTxFilter === 'unpaid' ? 'Unpaid Invoices' : 'Records');
+  countBadge.textContent = `${invoices.length} ${filterLabel}`;
 
   if (invoices.length === 0) {
     tbody.innerHTML = `
       <tr>
         <td colspan="6" style="text-align: center; color: #64748b; padding: 2rem;">
           <i class="fa-solid fa-folder-open" style="font-size: 1.8rem; margin-bottom: 0.5rem; display: block;"></i>
-          No archived invoices found. Use the generator form to create one.
+          No ${filterLabel.toLowerCase()} found in history archive.
         </td>
       </tr>
     `;
@@ -261,19 +336,34 @@ function renderInvoicesTable(invoices) {
     const isPaid = inv.status === 'Paid';
     const statusBadgeClass = isPaid ? 'badge-success' : 'badge-warning';
 
+    let serviceCellHtml = '';
+    if (Array.isArray(inv.services) && inv.services.length > 1) {
+      const namesList = inv.services.map(s => escapeHtml(s.name)).join(' • ');
+      serviceCellHtml = `
+        <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px;">
+          <span class="badge badge-info" style="font-size: 0.65rem; padding: 2px 8px; white-space: nowrap;">${inv.services.length} Services Selected</span>
+          <div style="font-size: 0.78rem; color: #334155; font-weight: 600; line-height: 1.25; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;" title="${namesList}">
+            ${namesList}
+          </div>
+        </div>
+      `;
+    } else {
+      serviceCellHtml = `<div style="font-size: 0.8rem; font-weight: 600; color: #334155;">${escapeHtml(inv.service || 'Eco-Cleaning Service')}</div>`;
+    }
+
     return `
       <tr>
-        <td><strong>${inv.invoiceNum}</strong></td>
+        <td style="white-space: nowrap; font-weight: 800; font-size: 0.85rem; color: #0f172a;">${inv.invoiceNum}</td>
         <td>
-          <div style="font-weight: 700;">${escapeHtml(inv.clientName)}</div>
-          <div style="font-size: 0.78rem; color: #64748b;">${escapeHtml(inv.clientEmail)}</div>
+          <div style="font-weight: 700; font-size: 0.85rem;">${escapeHtml(inv.clientName)}</div>
+          <div style="font-size: 0.74rem; color: #64748b;">${escapeHtml(inv.clientEmail)}</div>
         </td>
-        <td style="max-width: 200px; font-size: 0.82rem;">${escapeHtml(inv.service)}</td>
-        <td><strong>KES ${formatCurrency(inv.grandTotal)}</strong></td>
-        <td>
+        <td style="max-width: 260px;">${serviceCellHtml}</td>
+        <td style="white-space: nowrap; font-weight: 800; font-size: 0.85rem; color: #0f172a;">KES ${formatCurrency(inv.grandTotal)}</td>
+        <td style="white-space: nowrap;">
           <span class="badge ${statusBadgeClass}">${inv.status}</span>
         </td>
-        <td>
+        <td style="white-space: nowrap;">
           <div class="action-btn-group">
             <button class="btn-icon" onclick="window.viewInvoiceModal('${inv.id}')" title="View Breakdown">
               <i class="fa-solid fa-eye"></i>
@@ -307,6 +397,15 @@ window.toggleInvoiceStatus = async function(id, currentStatus) {
   const newStatus = currentStatus === 'Paid' ? 'Unpaid' : 'Paid';
   try {
     await updateDoc(doc(db, 'invoices', id), { status: newStatus });
+
+    // When status changes to Paid, auto-launch the Official Payment Receipt Modal!
+    if (newStatus === 'Paid') {
+      const inv = (window._invoicesCache || []).find(item => item.id === id);
+      if (inv) {
+        const updatedInv = { ...inv, status: 'Paid' };
+        showInvoiceModal(updatedInv);
+      }
+    }
   } catch (err) {
     console.error("Error updating status:", err);
   }
@@ -323,18 +422,61 @@ window.deleteInvoice = async function(id) {
 };
 
 function showInvoiceModal(inv) {
-  document.getElementById('modalInvNum').textContent = inv.invoiceNum;
-  document.getElementById('modalInvDate').textContent = `Date: ${inv.formattedDate || new Date().toLocaleDateString('en-GB')}`;
+  const isPaid = inv.status === 'Paid';
+  const docTitle = isPaid ? 'OFFICIAL PAYMENT RECEIPT' : 'OFFICIAL INVOICE';
+  const docNum = isPaid 
+    ? (inv.invoiceNum.replace('LEA-INV', 'LEA-RCT'))
+    : inv.invoiceNum;
+  const formattedDate = inv.formattedDate || (inv.createdAt?.toDate ? inv.createdAt.toDate().toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB'));
+
+  const docTitleElem = document.getElementById('modalDocTitle');
+  if (docTitleElem) docTitleElem.textContent = docTitle;
+
+  document.getElementById('modalInvNum').textContent = docNum;
+  document.getElementById('modalInvDate').textContent = `${isPaid ? 'Payment Date' : 'Date'}: ${formattedDate}`;
   
   const statusBadge = document.getElementById('modalInvStatus');
-  statusBadge.textContent = inv.status;
-  statusBadge.className = `badge ${inv.status === 'Paid' ? 'badge-success' : 'badge-warning'}`;
+  if (statusBadge) {
+    statusBadge.textContent = isPaid ? 'PAID IN FULL' : 'UNPAID';
+    statusBadge.className = `badge ${isPaid ? 'badge-success' : 'badge-warning'}`;
+  }
 
   document.getElementById('modalClientName').textContent = inv.clientName;
   document.getElementById('modalClientEmail').textContent = inv.clientEmail;
-  document.getElementById('modalServiceTitle').textContent = inv.service;
 
-  document.getElementById('modalBaseSubtotal').textContent = formatCurrency(inv.subtotal);
+  // Show/Hide Official Receipt Confirmation Banner
+  const receiptNoticeBox = document.getElementById('modalReceiptNotice');
+  if (receiptNoticeBox) {
+    receiptNoticeBox.style.display = isPaid ? 'block' : 'none';
+  }
+
+  // Update Action Button Text
+  const btnPrint = document.getElementById('btnPrintInvoice');
+  if (btnPrint) {
+    btnPrint.innerHTML = isPaid 
+      ? `<i class="fa-solid fa-print"></i> Print Official Receipt` 
+      : `<i class="fa-solid fa-print"></i> Print Invoice`;
+  }
+
+  // Itemized service table population
+  const tbody = document.getElementById('modalServicesTbody');
+  if (tbody) {
+    const servicesList = (Array.isArray(inv.services) && inv.services.length > 0)
+      ? inv.services
+      : [{ name: inv.service || 'Eco-Cleaning Service', amount: inv.subtotal || 0 }];
+
+    tbody.innerHTML = servicesList.map(item => `
+      <tr>
+        <td style="font-weight: 700; width: 55%; padding: 6px 10px;">${escapeHtml(item.name)}</td>
+        <td style="color: #64748b; width: 25%; padding: 6px 10px;">Eco-Cleaning Service</td>
+        <td style="text-align: right; font-weight: 700; width: 20%; padding: 6px 10px;">KES ${formatCurrency(item.amount)}</td>
+      </tr>
+    `).join('');
+  }
+
+  const baseSubtotal = document.getElementById('modalBaseSubtotal');
+  if (baseSubtotal) baseSubtotal.textContent = formatCurrency(inv.subtotal);
+  
   document.getElementById('modalSubtotalVal').textContent = `KES ${formatCurrency(inv.subtotal)}`;
   document.getElementById('modalVatVal').textContent = `KES ${formatCurrency(inv.vat)}`;
   document.getElementById('modalGrandTotalVal').textContent = `KES ${formatCurrency(inv.grandTotal)}`;
@@ -344,6 +486,199 @@ function showInvoiceModal(inv) {
 
 function closeModal() {
   document.getElementById('invoiceModal').classList.remove('show');
+}
+
+function openTxStatementModal() {
+  const rawInvoices = window._allInvoicesCache || [];
+
+  // Filter based on active selection (All, Paid Receipts, Unpaid Invoices)
+  let records = rawInvoices;
+  if (currentTxFilter === 'paid') {
+    records = rawInvoices.filter(i => i.status === 'Paid');
+  } else if (currentTxFilter === 'unpaid') {
+    records = rawInvoices.filter(i => i.status === 'Unpaid');
+  }
+
+  const filterLabel = currentTxFilter === 'paid' 
+    ? 'Paid Receipts Statement' 
+    : (currentTxFilter === 'unpaid' ? 'Unpaid Invoices Statement' : 'All Transactions Financial Statement');
+
+  const filterLabelElem = document.getElementById('stmtFilterLabel');
+  if (filterLabelElem) filterLabelElem.textContent = filterLabel;
+
+  const stmtDateElem = document.getElementById('stmtDateLabel');
+  if (stmtDateElem) stmtDateElem.textContent = `Statement Date: ${new Date().toLocaleDateString('en-GB')}`;
+
+  const stmtRecordCount = document.getElementById('stmtRecordCountBadge');
+  if (stmtRecordCount) stmtRecordCount.textContent = `${records.length} Records`;
+
+  // Calculate totals
+  const totalInvoiced = records.reduce((sum, i) => sum + (i.grandTotal || 0), 0);
+  const totalPaid = records.filter(i => i.status === 'Paid').reduce((sum, i) => sum + (i.grandTotal || 0), 0);
+  const totalUnpaid = records.filter(i => i.status === 'Unpaid').reduce((sum, i) => sum + (i.grandTotal || 0), 0);
+
+  const stmtInvoicedElem = document.getElementById('stmtTotalInvoicedVal');
+  if (stmtInvoicedElem) stmtInvoicedElem.textContent = `KES ${formatCurrency(totalInvoiced)}`;
+
+  const stmtPaidElem = document.getElementById('stmtTotalPaidVal');
+  if (stmtPaidElem) stmtPaidElem.textContent = `KES ${formatCurrency(totalPaid)}`;
+
+  const stmtUnpaidElem = document.getElementById('stmtTotalUnpaidVal');
+  if (stmtUnpaidElem) stmtUnpaidElem.textContent = `KES ${formatCurrency(totalUnpaid)}`;
+
+  // Populate Table Body
+  const tbody = document.getElementById('stmtTransactionsTbody');
+  if (tbody) {
+    if (records.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" style="text-align: center; color: #64748b; padding: 1.5rem;">
+            No ${filterLabel.toLowerCase()} available to export.
+          </td>
+        </tr>
+      `;
+    } else {
+      tbody.innerHTML = records.map(inv => {
+        const isPaid = inv.status === 'Paid';
+        const docNum = isPaid ? inv.invoiceNum.replace('LEA-INV', 'LEA-RCT') : inv.invoiceNum;
+        const statusBadgeClass = isPaid ? 'badge-success' : 'badge-warning';
+
+        return `
+          <tr>
+            <td style="font-weight: 800; font-size: 0.74rem; width: 20%; padding: 4px 8px;">${escapeHtml(docNum)}</td>
+            <td style="font-size: 0.74rem; width: 26%; padding: 4px 8px;">
+              <div style="font-weight: 700; color: #0f172a;">${escapeHtml(inv.clientName)}</div>
+              <div style="font-size: 0.68rem; color: #64748b;">${escapeHtml(inv.clientEmail)}</div>
+            </td>
+            <td style="font-size: 0.72rem; color: #334155; width: 26%; padding: 4px 8px;">${escapeHtml(inv.service || 'Eco-Cleaning Services')}</td>
+            <td style="text-align: right; font-weight: 800; font-size: 0.76rem; width: 16%; padding: 4px 8px;">KES ${formatCurrency(inv.grandTotal)}</td>
+            <td style="text-align: center; width: 12%; padding: 4px 8px;">
+              <span class="badge ${statusBadgeClass}" style="font-size: 0.62rem; padding: 2px 5px;">${inv.status}</span>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+  }
+
+  document.getElementById('txStatementModal').classList.add('show');
+}
+
+function closeTxModal() {
+  document.getElementById('txStatementModal').classList.remove('show');
+}
+
+async function downloadInvoicePDF() {
+  const element = document.getElementById('pdfExportContainer');
+  const invNum = document.getElementById('modalInvNum').textContent || 'LEA-INV';
+
+  // High-resolution lossless PDF Export options (Prevents blur, clipping, & multi-page overflow)
+  const opt = {
+    margin:       [0.25, 0.25, 0.25, 0.25],
+    filename:     `${invNum}.pdf`,
+    image:        { type: 'png' },
+    html2canvas:  { 
+      scale: 3, 
+      useCORS: true, 
+      logging: false, 
+      letterRendering: true,
+      dpi: 300,
+      backgroundColor: '#ffffff',
+      windowWidth: 800
+    },
+    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' },
+    pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+  };
+
+  if (window.html2pdf) {
+    try {
+      const btnPdf = document.getElementById('btnDownloadPdf');
+      if (btnPdf) btnPdf.disabled = true;
+
+      // Temporarily format container for crisp 1-page PDF export
+      const modalCard = element.closest('.invoice-preview-card');
+      const origMaxHeight = modalCard ? modalCard.style.maxHeight : '';
+      const origOverflow = modalCard ? modalCard.style.overflow : '';
+      const origWidth = element.style.width;
+
+      if (modalCard) {
+        modalCard.style.maxHeight = 'none';
+        modalCard.style.overflow = 'visible';
+      }
+      element.style.width = '790px';
+
+      await window.html2pdf().set(opt).from(element).save();
+
+      if (modalCard) {
+        modalCard.style.maxHeight = origMaxHeight;
+        modalCard.style.overflow = origOverflow;
+      }
+      element.style.width = origWidth;
+
+      if (btnPdf) btnPdf.disabled = false;
+    } catch (e) {
+      console.warn("PDF Export Notice:", e);
+      window.print();
+    }
+  } else {
+    window.print();
+  }
+}
+
+async function downloadTxStatementPDF() {
+  const element = document.getElementById('pdfTxStatementContainer');
+  const dateStr = new Date().toISOString().split('T')[0];
+  const filename = `LEA-Transaction-Statement-${dateStr}.pdf`;
+
+  const opt = {
+    margin:       [0.25, 0.25, 0.25, 0.25],
+    filename:     filename,
+    image:        { type: 'png' },
+    html2canvas:  { 
+      scale: 3, 
+      useCORS: true, 
+      logging: false, 
+      letterRendering: true,
+      dpi: 300,
+      backgroundColor: '#ffffff',
+      windowWidth: 850
+    },
+    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' },
+    pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+  };
+
+  if (window.html2pdf) {
+    try {
+      const btnPrint = document.getElementById('btnPrintTxStatement');
+      if (btnPrint) btnPrint.disabled = true;
+
+      const modalCard = element.closest('.invoice-preview-card');
+      const origMaxHeight = modalCard ? modalCard.style.maxHeight : '';
+      const origOverflow = modalCard ? modalCard.style.overflow : '';
+      const origWidth = element.style.width;
+
+      if (modalCard) {
+        modalCard.style.maxHeight = 'none';
+        modalCard.style.overflow = 'visible';
+      }
+      element.style.width = '820px';
+
+      await window.html2pdf().set(opt).from(element).save();
+
+      if (modalCard) {
+        modalCard.style.maxHeight = origMaxHeight;
+        modalCard.style.overflow = origOverflow;
+      }
+      element.style.width = origWidth;
+
+      if (btnPrint) btnPrint.disabled = false;
+    } catch (e) {
+      console.warn("PDF Export Notice:", e);
+      window.print();
+    }
+  } else {
+    window.print();
+  }
 }
 
 // ── 4. TENDER & CONTRACT COUNTDOWN TRACKER MODULE ───────────────────────────
