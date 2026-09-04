@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>L.e.a. Ecolene Group — Admin Management Portal</title>
+  
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- App Favicon & Stylesheet -->
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ── Header Navbar ───────────────────────────────────────────────────────── -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-group">
+        <div class="brand-icon">
+          <img src="logo.png" alt="L.e.a. Ecolene Group Logo" class="brand-logo-img">
+        </div>
+        <div>
+          <h1 class="brand-title">L.e.a. Ecolene Group</h1>
+          <div class="brand-subtitle">Management &amp; Financial Operations</div>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Auth User Info (Hidden when logged out) -->
+        <div id="userInfoBadge" class="user-badge" style="display: none;">
+          <span class="user-status-dot"></span>
+          <span id="userEmailTxt">admin@leaecolene.co.ke</span>
+        </div>
+
+        <button id="btnLogout" class="btn-logout" style="display: none;">
+          <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Main Application Content ───────────────────────────────────────────── -->
+  <main class="main-wrapper">
+
+    <!-- 1. ADMIN LOGIN VIEW (Displayed when user is unauthorized) -->
+    <section id="authSection" class="auth-container">
+      <div class="auth-card">
+        <div class="auth-logo">
+          <img src="logo.png" alt="L.e.a. Ecolene Group Logo" class="auth-logo-img">
+        </div>
+        <h2 class="auth-title">Admin Access Login</h2>
+        <p class="auth-desc">Sign in with authorized administrator credentials to manage invoices and tender contracts.</p>
+
+        <div id="authAlert" class="alert-box">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span id="authAlertMsg">Invalid credentials. Please try again.</span>
+        </div>
+
+        <form id="authForm" class="auth-form">
+          <div class="form-group">
+            <label class="form-label" for="loginEmail">Admin Email</label>
+            <input type="email" id="loginEmail" class="form-control" placeholder="admin@leaecolene.co.ke" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="loginPassword">Password</label>
+            <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required>
+          </div>
+
+          <button type="submit" id="btnLoginSubmit" class="btn-primary">
+            <i class="fa-solid fa-lock-open"></i> Sign In to Dashboard
+          </button>
+        </form>
+      </div>
+    </section>
+
+
+    <!-- 2. ADMIN DASHBOARD VIEW (Protected Content - Hidden until authenticated) -->
+    <section id="dashboardSection" style="display: none;">
+
+      <!-- Top Summary Metrics Bar -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-icon green">
+            <i class="fa-solid fa-file-invoice-dollar"></i>
+          </div>
+          <div>
+            <div id="statTotalInvoices" class="metric-val">0</div>
+            <div class="metric-lbl">Total Invoices</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon amber">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+          </div>
+          <div>
+            <div id="statUnpaidAmount" class="metric-val">KES 0</div>
+            <div class="metric-lbl">Unpaid Invoices Total</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon blue">
+            <i class="fa-solid fa-file-contract"></i>
+          </div>
+          <div>
+            <div id="statActiveContracts" class="metric-val">0</div>
+            <div class="metric-lbl">Active Tenders</div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon purple">
+            <i class="fa-solid fa-hourglass-half"></i>
+          </div>
+          <div>
+            <div id="statExpiringContracts" class="metric-val">0</div>
+            <div class="metric-lbl">Expiring Soon (&lt; 30 Days)</div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- Tab Switcher Navigation -->
+      <div class="tabs-nav">
+        <button class="tab-btn active" data-tab="tabInvoices">
+          <i class="fa-solid fa-receipt"></i> Client Invoice Generator &amp; Archive
+        </button>
+        <button class="tab-btn" data-tab="tabTenders">
+          <i class="fa-solid fa-stopwatch"></i> Tender &amp; Contract Expiry Tracker
+        </button>
+      </div>
+
+
+      <!-- TAB 1: INVOICE GENERATOR & ARCHIVE PANEL -->
+      <div id="tabInvoices" class="tab-panel active">
+        <div class="panel-grid">
+          
+          <!-- Invoice Input Form -->
+          <div class="form-card">
+            <h3 class="card-heading">
+              <i class="fa-solid fa-plus-circle"></i> Generate Client Invoice
+            </h3>
+            
+            <form id="invoiceForm">
+              <div class="form-group">
+                <label class="form-label" for="clientName">Client / Company Name</label>
+                <input type="text" id="clientName" class="form-control" placeholder="e.g. Kenwood Plaza Ltd" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="clientEmail">Client Email Address</label>
+                <input type="email" id="clientEmail" class="form-control" placeholder="billing@kenwood.co.ke" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="serviceSelect">Eco-Cleaning Service</label>
+                <select id="serviceSelect" class="form-control" required>
+                  <option value="">-- Select Service --</option>
+                  <option value="Commercial Office Sanitization & Deep Clean">Commercial Office Sanitization &amp; Deep Clean</option>
+                  <option value="Carpet & Upholstery Eco-Steam Cleaning">Carpet &amp; Upholstery Eco-Steam Cleaning</option>
+                  <option value="Post-Construction Clean & Debris Care">Post-Construction Clean &amp; Debris Care</option>
+                  <option value="High-Rise Window & Glass Restoration">High-Rise Window &amp; Glass Restoration</option>
+                  <option value="Integrated Facilities & Washroom Hygiene">Integrated Facilities &amp; Washroom Hygiene</option>
+                  <option value="Landscaping & Grounds Maintenance">Landscaping &amp; Grounds Maintenance</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="baseAmount">Base Amount (KES)</label>
+                <input type="number" id="baseAmount" class="form-control" placeholder="e.g. 50000" min="1" step="0.01" required>
+              </div>
+
+              <button type="submit" class="btn-primary">
+                <i class="fa-solid fa-calculator"></i> Calculate &amp; Generate Invoice
+              </button>
+            </form>
+          </div>
+
+          <!-- Saved Invoices Archive Table -->
+          <div class="data-card">
+            <div class="table-header-bar">
+              <h3 class="table-title">Archived Invoices History</h3>
+              <span id="invoiceCountBadge" class="badge badge-info">0 Saved</span>
+            </div>
+
+            <div class="table-responsive">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Invoice #</th>
+                    <th>Client</th>
+                    <th>Service</th>
+                    <th>Grand Total (KES)</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="invoicesTbody">
+                  <tr>
+                    <td colspan="6" style="text-align: center; color: #64748b; padding: 2rem;">
+                      <i class="fa-solid fa-folder-open" style="font-size: 1.8rem; margin-bottom: 0.5rem; display: block;"></i>
+                      No archived invoices found. Use the generator form to create one.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+
+      <!-- TAB 2: TENDER & CONTRACT COUNTDOWN TRACKER PANEL -->
+      <div id="tabTenders" class="tab-panel">
+        <div class="panel-grid">
+          
+          <!-- Tender Input Form -->
+          <div class="form-card">
+            <h3 class="card-heading">
+              <i class="fa-solid fa-folder-plus"></i> Register Tender / Contract
+            </h3>
+
+            <form id="tenderForm">
+              <div class="form-group">
+                <label class="form-label" for="tenderTitle">Tender / Contract Title</label>
+                <input type="text" id="tenderTitle" class="form-control" placeholder="e.g. Annual Office Cleaning Contract" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="tenderClient">Organization / Client Name</label>
+                <input type="text" id="tenderClient" class="form-control" placeholder="e.g. Ministry of Land & Infrastructure" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="contractEndDate">Contract Expiry Date</label>
+                <input type="date" id="contractEndDate" class="form-control" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="tenderValue">Total Contract Value (KES)</label>
+                <input type="number" id="tenderValue" class="form-control" placeholder="e.g. 1500000" min="1" step="0.01" required>
+              </div>
+
+              <button type="submit" class="btn-primary">
+                <i class="fa-solid fa-stopwatch"></i> Track Contract Expiry
+              </button>
+            </form>
+          </div>
+
+          <!-- Live Tender Countdown Cards Grid -->
+          <div>
+            <div style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+              <h3 class="table-title">Live Contract Expiry Trackers</h3>
+              <span id="tenderCountBadge" class="badge badge-info">0 Tracked</span>
+            </div>
+
+            <div id="tendersGrid" class="tenders-grid">
+              <div style="grid-column: 1 / -1; background: #ffffff; padding: 3rem; text-align: center; border-radius: 12px; border: 1px dashed #cbd5e1; color: #64748b;">
+                <i class="fa-solid fa-business-time" style="font-size: 2.2rem; margin-bottom: 0.5rem; color: #94a3b8; display: block;"></i>
+                No active tenders or contracts being tracked yet.
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- ── ITEMIZED INVOICE PREVIEW MODAL ────────────────────────────────────── -->
+  <div id="invoiceModal" class="modal-backdrop">
+    <div class="invoice-preview-card">
+      <div class="inv-header">
+        <div style="display: flex; align-items: center; gap: 0.85rem;">
+          <img src="logo.png" alt="L.e.a. Ecolene Group Logo" class="inv-logo-img">
+          <div>
+            <div class="inv-company-name">L.e.a. Ecolene Group</div>
+            <div class="inv-company-sub">Company Limited • Facilities &amp; Eco-Cleaning</div>
+            <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.25rem;">Nairobi, Kenya • info@leaecolenegroup.co.ke</div>
+          </div>
+        </div>
+        <div class="inv-number-badge">
+          <div id="modalInvNum" class="inv-num">LEA-INV-XXXX</div>
+          <div id="modalInvDate" class="inv-date">Date: 2026-09-04</div>
+          <div id="modalInvStatus" class="badge badge-warning" style="margin-top: 0.35rem;">UNPAID</div>
+        </div>
+      </div>
+
+      <div class="inv-client-box">
+        <div style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Billed To:</div>
+        <div id="modalClientName" style="font-weight: 800; font-size: 1.05rem; color: #0f172a;">Client Name</div>
+        <div id="modalClientEmail" style="font-size: 0.85rem; color: #475569;">client@email.com</div>
+      </div>
+
+      <table class="inv-table">
+        <thead>
+          <tr style="text-align: left; font-size: 0.8rem; text-transform: uppercase; color: #64748b; border-bottom: 2px solid #e2e8f0;">
+            <th>Description / Service</th>
+            <th style="text-align: right;">Amount (KES)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td id="modalServiceTitle" style="font-weight: 600;">Office Sanitization Service</td>
+            <td id="modalBaseSubtotal" style="text-align: right; font-weight: 700;">0.00</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="width: 240px; margin-left: auto;">
+        <div class="inv-total-row">
+          <span>Subtotal:</span>
+          <span id="modalSubtotalVal" style="font-weight: 600;">KES 0.00</span>
+        </div>
+        <div class="inv-total-row">
+          <span>16% VAT Tax:</span>
+          <span id="modalVatVal" style="font-weight: 600;">KES 0.00</span>
+        </div>
+        <div class="inv-grand-total inv-total-row">
+          <span>Grand Total:</span>
+          <span id="modalGrandTotalVal">KES 0.00</span>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="btnPrintInvoice" class="btn-primary" style="width: auto;">
+          <i class="fa-solid fa-print"></i> Print / Save PDF
+        </button>
+        <button id="btnCloseModal" class="btn-secondary">Close</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ── Footer ────────────────────────────────────────────────────────────── -->
+  <footer class="app-footer">
+    &copy; <span id="copyrightYear">2026</span> L.e.a. Ecolene Group Company Limited. All rights reserved.
+  </footer>
+
+  <!-- App Main JavaScript Logic -->
+  <script type="module" src="app.js"></script>
+
+</body>
+</html>

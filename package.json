@@ -1,0 +1,28 @@
+{
+  "name": "admin-ecolean",
+  "version": "1.0.0",
+  "description": "Full-Stack Admin Management Application for L.e.a. Ecolene Group Company Limited",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "build": "echo 'Vercel build complete'"
+  },
+  "keywords": [
+    "express",
+    "firebase",
+    "ecolene",
+    "management",
+    "invoices",
+    "tenders"
+  ],
+  "author": "L.e.a. Ecolene Group Company Limited",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "firebase-admin": "^13.1.0"
+  }
+}
