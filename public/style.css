@@ -770,6 +770,155 @@ body {
   background: #ffffff;
 }
 
+/* ── Responsive Mobile & Tablet Design System ──────────────────────────────── */
+
+@media (max-width: 992px) {
+  .panel-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    padding: 0.85rem 1.25rem;
+  }
+
+  .header-container {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .brand-title {
+    font-size: 1rem;
+  }
+
+  .brand-subtitle {
+    font-size: 0.68rem;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: space-between;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .main-wrapper {
+    margin: 1.25rem auto;
+    padding: 0 1rem;
+  }
+
+  .tabs-nav {
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+  }
+
+  .tab-btn {
+    padding: 0.7rem 1.1rem;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
+
+  .auth-card {
+    padding: 1.75rem 1.25rem;
+    max-width: 100%;
+  }
+
+  .auth-title {
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .metrics-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .metric-card {
+    padding: 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .metric-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
+    border-radius: 8px;
+  }
+
+  .metric-val {
+    font-size: 1.2rem;
+  }
+
+  .metric-lbl {
+    font-size: 0.68rem;
+  }
+
+  .form-card {
+    padding: 1.25rem;
+  }
+
+  .card-heading {
+    font-size: 1.05rem;
+  }
+
+  .tenders-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Invoice Modal Mobile Stack */
+  .modal-backdrop {
+    padding: 0.5rem;
+  }
+
+  .invoice-preview-card {
+    padding: 1.25rem;
+    max-height: 95vh;
+    border-radius: var(--radius-md);
+  }
+
+  .inv-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .inv-number-badge {
+    text-align: left;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .modal-actions button {
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .user-badge {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+  }
+
+  .btn-logout {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.78rem;
+  }
+}
+
 /* Print Mode Styling */
 @media print {
   body * {
