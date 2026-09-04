@@ -1,0 +1,25 @@
+{
+  "name": "Admin Portal",
+  "short_name": "Admin",
+  "description": "Full-Stack Admin Management & Financial Operations Portal for L.E.A Ecolene Group Company Limited",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#0d1117",
+  "orientation": "any",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -662,16 +662,20 @@ body {
 
 /* Header Flexbox System (Supported 100% by html2canvas) */
 .lh-header-flex {
-  gap: 0.75rem !important;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
   border-bottom: 1px solid #e2e8f0;
   padding-bottom: 0.85rem;
 }
 
 .lh-col-logo {
-  width: 18% !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+  width: 18%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .lh-logo-img {
@@ -681,7 +685,7 @@ body {
 }
 
 .lh-col-contacts {
-  width: 48% !important;
+  width: 48%;
   border-left: 2px solid #0f172a;
   border-right: 2px solid #0f172a;
   padding: 0 0.85rem;
@@ -728,7 +732,7 @@ body {
 }
 
 .lh-col-directors {
-  width: 30% !important;
+  width: 30%;
   padding-left: 0.35rem;
   box-sizing: border-box;
 }
@@ -784,10 +788,10 @@ body {
 }
 
 .lh-inv-meta-bar {
-  display: flex !important;
-  flex-direction: row !important;
-  justify-content: space-between !important;
-  align-items: center !important;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
   background: #f8fafc;
   padding: 0.65rem 0.85rem;
   border-radius: 6px;
@@ -864,16 +868,16 @@ body {
 }
 
 .lh-bottom-flex {
-  display: flex !important;
-  flex-direction: row !important;
-  justify-content: space-between !important;
-  align-items: flex-start !important;
-  gap: 1rem !important;
-  margin-bottom: 1rem !important;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
 .lh-payment-box {
-  width: 55% !important;
+  width: 55%;
   background: #f8fafc;
   padding: 0.65rem 0.85rem;
   border-radius: 6px;
@@ -890,7 +894,7 @@ body {
 }
 
 .lh-totals-box {
-  width: 40% !important;
+  width: 40%;
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 6px;
@@ -901,20 +905,26 @@ body {
 .lh-total-row {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 0.78rem;
   padding: 0.25rem 0;
   color: #334155;
+  white-space: nowrap;
 }
 
 .lh-grand-row {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 0.95rem;
   font-weight: 800;
   color: #047857;
   border-top: 2px solid #0f172a;
   padding-top: 0.45rem;
   margin-top: 0.35rem;
+  white-space: nowrap;
 }
 
 .lh-receipt-banner {
