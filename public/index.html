@@ -147,6 +147,9 @@
         <button class="tab-btn" data-tab="tabTenders">
           <i class="fa-solid fa-stopwatch"></i> Tender &amp; Contract Expiry Tracker
         </button>
+        <button class="tab-btn" data-tab="tabSettings">
+          <i class="fa-solid fa-gears"></i> Admin Settings &amp; Control Panel
+        </button>
       </div>
 
 
@@ -334,6 +337,153 @@
                 <i class="fa-solid fa-business-time" style="font-size: 2.2rem; margin-bottom: 0.5rem; color: #94a3b8; display: block;"></i>
                 No active tenders or contracts being tracked yet.
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: ADMIN SETTINGS & CONTROL PANEL -->
+      <div id="tabSettings" class="tab-panel">
+        <div class="panel-grid" style="grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+          
+          <!-- CARD 1: Admin Security & Password Change -->
+          <div class="form-card">
+            <h3 class="card-heading" style="color: var(--navy); border-bottom: 2px solid #e2e8f0; padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
+              <i class="fa-solid fa-shield-halved" style="color: #047857;"></i> Admin Security &amp; Password Management
+            </h3>
+
+            <form id="changePasswordForm">
+              <div id="pwdAlert" class="alert-box" style="display: none; margin-bottom: 1rem;">
+                <i class="fa-solid fa-circle-info"></i>
+                <span id="pwdAlertMsg">Notification message</span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="currentPassword">Current Password</label>
+                <input type="password" id="currentPassword" class="form-control" placeholder="••••••••" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="newPassword">New Password (Min. 6 characters)</label>
+                <input type="password" id="newPassword" class="form-control" placeholder="••••••••" minlength="6" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="confirmNewPassword">Confirm New Password</label>
+                <input type="password" id="confirmNewPassword" class="form-control" placeholder="••••••••" minlength="6" required>
+              </div>
+
+              <button type="submit" id="btnChangePassword" class="btn-primary" style="width: 100%; margin-top: 0.5rem;">
+                <i class="fa-solid fa-key"></i> Update Admin Password
+              </button>
+            </form>
+          </div>
+
+          <!-- CARD 2: Business Profile & Letterhead Settings -->
+          <div class="form-card">
+            <h3 class="card-heading" style="color: var(--navy); border-bottom: 2px solid #e2e8f0; padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
+              <i class="fa-solid fa-building-circle-check" style="color: #047857;"></i> Business &amp; Letterhead Profile
+            </h3>
+
+            <form id="businessProfileForm">
+              <div id="bizAlert" class="alert-box" style="display: none; background: #f0fdf4; color: #15803d; border-color: #86efac; margin-bottom: 1rem;">
+                <i class="fa-solid fa-circle-check"></i>
+                <span id="bizAlertMsg">Business profile settings saved successfully.</span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="cfgCompanyName">Company Registered Name</label>
+                <input type="text" id="cfgCompanyName" class="form-control" value="L.E.A Ecolene Group Company Limited" required>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                <div class="form-group">
+                  <label class="form-label" for="cfgPhone1">Primary Phone</label>
+                  <input type="text" id="cfgPhone1" class="form-control" value="+254 142 253 754" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="cfgPhone2">Secondary Phone</label>
+                  <input type="text" id="cfgPhone2" class="form-control" value="+254 799 991 422">
+                </div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                <div class="form-group">
+                  <label class="form-label" for="cfgEmail">Official Email</label>
+                  <input type="email" id="cfgEmail" class="form-control" value="info@leaecolenegroup.co.ke" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="cfgVatRate">Default VAT Rate (%)</label>
+                  <input type="number" id="cfgVatRate" class="form-control" value="16" step="0.5" min="0" required>
+                </div>
+              </div>
+
+              <button type="submit" class="btn-primary" style="width: 100%; margin-top: 0.5rem; background: #047857; border-color: #047857;">
+                <i class="fa-solid fa-floppy-disk"></i> Save Business Profile
+              </button>
+            </form>
+          </div>
+
+          <!-- CARD 3: System Admin Commands & Data Utilities -->
+          <div class="form-card" style="grid-column: 1 / -1;">
+            <h3 class="card-heading" style="color: var(--navy); border-bottom: 2px solid #e2e8f0; padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
+              <i class="fa-solid fa-terminal" style="color: #047857;"></i> Admin System Commands &amp; Control Utilities
+            </h3>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1rem;">
+              
+              <!-- Command 1: Force Sync Data -->
+              <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 1.1rem; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                  <div style="font-weight: 800; color: #0f172a; font-size: 0.92rem; margin-bottom: 0.35rem;">
+                    <i class="fa-solid fa-arrows-rotate" style="color: #0284c7;"></i> Sync Cloud Data
+                  </div>
+                  <div style="font-size: 0.78rem; color: #64748b; line-height: 1.35;">Re-fetch and synchronize all Firestore transaction records and active tender contracts.</div>
+                </div>
+                <button id="cmdRefreshData" class="btn-secondary" style="margin-top: 1rem; width: 100%; text-align: center;">
+                  <i class="fa-solid fa-rotate"></i> Execute Sync
+                </button>
+              </div>
+
+              <!-- Command 2: Export Full Backup JSON -->
+              <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 1.1rem; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                  <div style="font-weight: 800; color: #0f172a; font-size: 0.92rem; margin-bottom: 0.35rem;">
+                    <i class="fa-solid fa-file-export" style="color: #047857;"></i> Export Database Backup
+                  </div>
+                  <div style="font-size: 0.78rem; color: #64748b; line-height: 1.35;">Download complete JSON database archive of all client invoices, payment receipts, and contract timelines.</div>
+                </div>
+                <button id="cmdExportBackup" class="btn-primary" style="margin-top: 1rem; width: 100%; background: #047857; border-color: #047857; text-align: center;">
+                  <i class="fa-solid fa-download"></i> Download Backup JSON
+                </button>
+              </div>
+
+              <!-- Command 3: Clear Local Cache -->
+              <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 1.1rem; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                  <div style="font-weight: 800; color: #0f172a; font-size: 0.92rem; margin-bottom: 0.35rem;">
+                    <i class="fa-solid fa-broom" style="color: #b45309;"></i> Purge Cache &amp; Storage
+                  </div>
+                  <div style="font-size: 0.78rem; color: #64748b; line-height: 1.35;">Clear offline browser caches, local memory caches, and service worker offline stores.</div>
+                </div>
+                <button id="cmdClearCache" class="btn-secondary" style="margin-top: 1rem; width: 100%; text-align: center; color: #b45309;">
+                  <i class="fa-solid fa-trash-can"></i> Purge Offline Cache
+                </button>
+              </div>
+
+              <!-- Command 4: System Health Check -->
+              <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 1.1rem; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                  <div style="font-weight: 800; color: #0f172a; font-size: 0.92rem; margin-bottom: 0.35rem;">
+                    <i class="fa-solid fa-heart-pulse" style="color: #dc2626;"></i> System Health &amp; Diagnostics
+                  </div>
+                  <div id="sysHealthStatusTxt" style="font-size: 0.78rem; color: #64748b; line-height: 1.35;">Run diagnostic test on Express API server and Firebase database connection.</div>
+                </div>
+                <button id="cmdSystemHealth" class="btn-secondary" style="margin-top: 1rem; width: 100%; text-align: center;">
+                  <i class="fa-solid fa-stethoscope"></i> Run Diagnostic
+                </button>
+              </div>
+
             </div>
           </div>
 
