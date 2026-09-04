@@ -341,7 +341,10 @@ function renderInvoicesTable(rawInvoices) {
       const namesList = inv.services.map(s => escapeHtml(s.name)).join(' • ');
       serviceCellHtml = `
         <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px;">
-          <span class="badge badge-info" style="font-size: 0.65rem; padding: 2px 8px; white-space: nowrap;">${inv.services.length} Services Selected</span>
+          <span class="badge badge-info" style="font-size: 0.65rem; padding: 2px 8px; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px;">
+            <img src="logo.png" alt="LEA Logo" style="width: 14px; height: 14px; object-fit: contain; border-radius: 3px; background: #ffffff;">
+            ${inv.services.length} Services Selected
+          </span>
           <div style="font-size: 0.78rem; color: #334155; font-weight: 600; line-height: 1.25; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;" title="${namesList}">
             ${namesList}
           </div>

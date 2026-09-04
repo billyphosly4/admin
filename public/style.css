@@ -784,7 +784,20 @@ body {
 }
 
 .lh-leaf-badge {
-  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lh-badge-img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  border-radius: 4px;
+  background: #ffffff;
+  padding: 1px;
+  border: 1px solid #cbd5e1;
+  vertical-align: middle;
 }
 
 .lh-inv-meta-bar {
